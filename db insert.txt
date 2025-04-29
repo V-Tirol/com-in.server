@@ -1,0 +1,48 @@
+use [com-in]
+
+INSERT INTO Categories (CategoryName) VALUES 
+('ORGANIZATION'),
+('FACULTY'),
+('BSIT'),
+('BSED - ENGLISH'),
+('BSED - MATH'),
+('BSCRIM'),
+('BSHM');
+
+INSERT INTO MediaType (Name) VALUES 
+('ARTICLE'),
+('VIDEO'),
+('AUDIO');
+
+INSERT INTO Articles (Author, Title, Date, CategoryId) VALUES
+('Engr. John Cruz', 'DEVELOPING A WEB-BASED VOTING SYSTEM FOR BSIT STUDENTS', '2024-03-12', 
+    (SELECT Id FROM Categories WHERE CategoryName = 'BSIT')),
+('Prof. Maria Dela Cruz', 'THE IMPACT OF SOCIAL MEDIA ON STUDENTS'' WRITING SKILLS', '2024-02-18', 
+    (SELECT Id FROM Categories WHERE CategoryName = 'BSED - ENGLISH')),
+('Dr. Jose Ramos', 'MATHEMATICAL MODELING IN REAL-LIFE SCENARIOS: A CASE STUDY', '2023-11-05', 
+    (SELECT Id FROM Categories WHERE CategoryName = 'BSED - MATH')),
+('Col. Ana Santiago', 'A STUDY ON CRIME RATE REDUCTION STRATEGIES IN URBAN AREAS', '2023-10-01', 
+    (SELECT Id FROM Categories WHERE CategoryName = 'BSCRIM')),
+('Chef Antonio Gomez', 'SUSTAINABLE PRACTICES IN MODERN HOSPITALITY BUSINESSES', '2023-09-15', 
+    (SELECT Id FROM Categories WHERE CategoryName = 'BSHM'));
+
+INSERT INTO Media (Title, TypeId, Duration, Views, CategoryId) VALUES
+('HOW TO BUILD A SIMPLE MOBILE APP (TUTORIAL)', 
+    (SELECT Id FROM MediaType WHERE Name = 'VIDEO'), '55 min', '34K',
+    (SELECT Id FROM Categories WHERE CategoryName = 'BSIT')),
+
+('EFFECTIVE CLASSROOM ENGLISH STRATEGIES', 
+    (SELECT Id FROM MediaType WHERE Name = 'AUDIO'), '25 min', '18K',
+    (SELECT Id FROM Categories WHERE CategoryName = 'BSED - ENGLISH')),
+
+('MATH PUZZLES AND LOGIC GAMES FOR LEARNING', 
+    (SELECT Id FROM MediaType WHERE Name = 'VIDEO'), '40 min', '29k',
+    (SELECT Id FROM Categories WHERE CategoryName = 'BSED - MATH')),
+
+('THE ROLE OF FORENSICS IN CRIME INVESTIGATION', 
+    (SELECT Id FROM MediaType WHERE Name = 'VIDEO'), '1 hr 10 min', '42k',
+    (SELECT Id FROM Categories WHERE CategoryName = 'BSCRIM')),
+
+('CUSTOMER SERVICE IN HOTEL MANAGEMENT', 
+    (SELECT Id FROM MediaType WHERE Name = 'AUDIO'), '30 min', '15k',
+    (SELECT Id FROM Categories WHERE CategoryName = 'BSHM'));

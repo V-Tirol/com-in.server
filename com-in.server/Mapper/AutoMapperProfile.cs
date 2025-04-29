@@ -17,6 +17,8 @@ namespace com_in.server.Mapper
                             opt => opt.MapFrom(src => src.Category.CategoryName))
                 .ForMember(dest => dest.Type,
                             opt => opt.MapFrom(src => src.Type.Name));
+
+            
                 
         }
         

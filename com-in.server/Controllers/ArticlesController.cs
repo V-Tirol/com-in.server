@@ -31,9 +31,9 @@ namespace com_in.server.Controllers
             var articles =  await _context.Articles
                 .Include(c => c.Category)
                 .Where(a => a.IsActive)
-                .ToListAsync();
+                .ToListAsync(); //get article list
 
-            var artilesDtos = _mapper.Map<List<ArticleDto>>(articles);
+            var artilesDtos = _mapper.Map<List<ArticleDto>>(articles); //map the model to include the category name
 
             return Ok(artilesDtos);
         }
