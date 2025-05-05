@@ -51,7 +51,7 @@ namespace com_in.server.Controllers
             {
                 return BadRequest(result.Message); // message for login fail, (e.g. email already exists)
             }
-            return Ok(new { Message = "Registration Successful "});
+            return Ok(result.Message);
         }
     }
 }

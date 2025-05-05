@@ -116,6 +116,10 @@ namespace com_in.server.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("filter")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
@@ -131,7 +135,7 @@ namespace com_in.server.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("CategoryName")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -145,6 +149,50 @@ namespace com_in.server.Migrations
                     b.ToTable("Categories");
                 });
 
+            modelBuilder.Entity("com_in.server.Models.Course", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("isDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Courses");
+                });
+
+            modelBuilder.Entity("com_in.server.Models.Department", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Department");
+                });
+
             modelBuilder.Entity("com_in.server.Models.Faculty", b =>
                 {
                     b.Property<int>("Id")
@@ -153,7 +201,7 @@ namespace com_in.server.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Department")
+                    b.Property<string>("DepartmentId")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -248,6 +296,10 @@ namespace com_in.server.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("filter")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("isActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -322,10 +374,6 @@ namespace com_in.server.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Course")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -338,12 +386,17 @@ namespace com_in.server.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("courseId")
+                        .HasColumnType("int");
+
                     b.Property<bool>("isActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
 
                     b.HasKey("Id");
+
+                    b.HasIndex("courseId");
 
                     b.ToTable("Students");
                 });
@@ -378,11 +431,27 @@ namespace com_in.server.Migrations
                     b.Navigation("Type");
                 });
 
+            modelBuilder.Entity("com_in.server.Models.Student", b =>
+                {
+                    b.HasOne("com_in.server.Models.Course", "course")
+                        .WithMany("student")
+                        .HasForeignKey("courseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("course");
+                });
+
             modelBuilder.Entity("com_in.server.Models.Category", b =>
                 {
                     b.Navigation("Articles");
 
                     b.Navigation("Media");
+                });
+
+            modelBuilder.Entity("com_in.server.Models.Course", b =>
+                {
+                    b.Navigation("student");
                 });
 
             modelBuilder.Entity("com_in.server.Models.MediaType", b =>

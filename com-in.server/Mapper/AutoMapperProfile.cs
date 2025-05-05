@@ -10,16 +10,20 @@ namespace com_in.server.Mapper
         {
             CreateMap<Category, CategoryDto>();
             CreateMap<Article, ArticleDto>()
-                .ForMember(d => d.CategoryName,
-                            opt => opt.MapFrom(src => src.Category.CategoryName));
+                .ForMember(d => d.category,
+                            opt => opt.MapFrom(src => src.Category.Name));
             CreateMap<Media, MediaDto>()
-                .ForMember(dest => dest.Category,
-                            opt => opt.MapFrom(src => src.Category.CategoryName))
+                .ForMember(dest => dest.category,
+                            opt => opt.MapFrom(src => src.Category.Name))
                 .ForMember(dest => dest.Type,
                             opt => opt.MapFrom(src => src.Type.Name));
 
-            
+            CreateMap<Student, StudentDto>()
+            .ForMember(dest => dest.Course,
+                           opt => opt.MapFrom(src => src.course.Name));
                 
+
+
         }
         
     }

@@ -16,6 +16,9 @@ namespace com_in.server.Models
             modelBuilder.Entity<Article>().HasKey(c => c.Id);
             modelBuilder.Entity<MediaType>().HasKey(c => c.Id);
 
+            modelBuilder.Entity<Course>().HasKey(c => c.Id);
+            modelBuilder.Entity<Department>().HasKey(c => c.Id);
+
             modelBuilder.Entity<Login>().HasKey(c => c.Id);
             modelBuilder.Entity<Student>().HasKey(c => c.Id);
             modelBuilder.Entity<Faculty>().HasKey(c => c.Id);
@@ -24,11 +27,10 @@ namespace com_in.server.Models
             modelBuilder.Entity<Admin>().HasKey(c => c.Id);
 
 
-
-            modelBuilder.Entity<Category>()
-                .HasMany(a => a.Articles)
-                .WithOne(c => c.Category)
-                .HasForeignKey(c => c.CategoryId);
+            modelBuilder.Entity<Student>()
+                .HasOne(c => c.course)
+                .WithMany(c => c.student)
+                .HasForeignKey(c => c.courseId);
 
             
             modelBuilder.Entity<Media>()
@@ -75,6 +77,14 @@ namespace com_in.server.Models
                 .Property(t => t.isActive)
                 .HasDefaultValue(true);
 
+            modelBuilder.Entity<Course>()
+                .Property(t => t.isDeleted)
+                .HasDefaultValue(false);
+
+            modelBuilder.Entity<Department>()
+                .Property(t => t.IsDeleted)
+                .HasDefaultValue(false);
+
 
         }
 
@@ -83,6 +93,10 @@ namespace com_in.server.Models
         public DbSet<Media> Media { get; set; }
         public DbSet<MediaType> MediaType { get; set; }
 
+        public DbSet<Course> Courses { get; set; }
+        public DbSet<Department> Department { get; set; }
+
+        /* USERS AND ADMIN */
         public DbSet<Login> Logins { get; set; }
         public DbSet<Student> Students { get; set; }
         public DbSet<Faculty> Faculties { get; set; }

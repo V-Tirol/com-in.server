@@ -7,6 +7,8 @@
         public string Author { get; set; }
         public DateOnly Date { get; set; }
         public bool IsActive { get; set; }
-        public string CategoryName { get; set; }
+
+        public string category { get; set; } // student, faculty, org, research extension
+        public string filter { get; set; } // courses, department
     }
 }

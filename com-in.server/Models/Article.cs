@@ -9,6 +9,8 @@ namespace com_in.server.Models
         public string Author { get; set; } 
         public DateOnly Date {  get; set; }
         public bool IsActive { get; set; }
+        public string filter { get; set; }
+
         public int CategoryId { get; set; }
         [JsonIgnore]
         public virtual Category? Category { get; set; }

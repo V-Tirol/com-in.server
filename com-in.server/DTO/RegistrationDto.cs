@@ -9,9 +9,9 @@
         public string ProfileId {  get; set; }  //StudentId, FacultyId, OrganizationalId
 
 
-        public string Course { get; set; } = ""; //Student Course
+        public int courseId { get; set; } //Student Course
         public string Position { get; set; } = ""; //Alumni,Faculty Position
-        public string Department { get; set; } = "";//Faculty Department
+        public int departmentId { get; set; }//Faculty Department
 
         public string YearGraduated { get; set; }
     }

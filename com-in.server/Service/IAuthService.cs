@@ -4,6 +4,7 @@ using com_in.server.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Transactions;
 
 namespace com_in.server.Service
 {
@@ -26,112 +27,124 @@ namespace com_in.server.Service
 
         public async Task<OperationResult> RegisterAsync(RegistrationDto registrationDto)
         {
-            // Check if email already exists in the Login table
-            var existingUser = await _context.Logins
-                .FirstOrDefaultAsync(l => l.Email == registrationDto.Email);
-
-            if (existingUser != null)
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                return new OperationResult(false, "Email already in use.");
-            }
+                // Check if email already exists in the Login table
+                var existingUser = await _context.Logins
+                    .FirstOrDefaultAsync(l => l.Email == registrationDto.Email);
 
-            // Step 1: Create the Login record
-            var login = new Login
-            {
-                Email = registrationDto.Email,
-                Password = _passwordHasher.HashPassword(registrationDto.Password), // Hash password
-                UserType = registrationDto.UserType,
-            };
-
-            _context.Logins.Add(login);
-            await _context.SaveChangesAsync();
-
-            // Step 2: Create the profile record based on the UserType (Student, Faculty, etc.)
-            if (registrationDto.UserType == "Student")
-            {
-                var student = new Student
+                if (existingUser != null)
                 {
-                    StudentId = registrationDto.ProfileId,
-                    Name = registrationDto.FullName,
+                    return new OperationResult(false, "Email already in use.");
+                }
+
+                // Step 1: Create the Login record
+                var login = new Login
+                {
                     Email = registrationDto.Email,
-                    Course = registrationDto.Course, // Specific to Student (e.g., course name)
-                    isActive = true
+                    Password = _passwordHasher.HashPassword(registrationDto.Password), // Hash password
+                    UserType = registrationDto.UserType,
                 };
 
-                _context.Students.Add(student);
+                _context.Logins.Add(login);
                 await _context.SaveChangesAsync();
 
-                // Associate login record with the student profile
-                login.ReferenceId = student.Id; // Save the profile reference in Login
-            }
-            else if (registrationDto.UserType == "Faculty")
-            {
-                var faculty = new Faculty
+                // Step 2: Create the profile record based on the UserType (Student, Faculty, etc.)
+                if (registrationDto.UserType == "Student")
                 {
-                    FacultyId = registrationDto.ProfileId,
-                    Position = registrationDto.Position,
-                    Name = registrationDto.FullName,
-                    InstitutionalEmail = registrationDto.Email,
-                    Department = registrationDto.Department, // Specific to Faculty (e.g., department)
-                    isActive = true
-                };
+                    var student = new Student
+                    {
+                        StudentId = registrationDto.ProfileId,
+                        Name = registrationDto.FullName,
+                        Email = registrationDto.Email,
+                        courseId = registrationDto.courseId, // Specific to Student (e.g., course name)
+                        isActive = true
+                    };
 
-                _context.Faculties.Add(faculty);
+                    _context.Students.Add(student);
+                    await _context.SaveChangesAsync();
+
+                    // Associate login record with the student profile
+                    login.ReferenceId = student.Id; // Save the profile reference in Login
+                }
+                else if (registrationDto.UserType == "Faculty")
+                {
+                    var faculty = new Faculty
+                    {
+                        FacultyId = registrationDto.ProfileId,
+                        Position = registrationDto.Position,
+                        Name = registrationDto.FullName,
+                        InstitutionalEmail = registrationDto.Email,
+                        DepartmentId = registrationDto.departmentId, // Specific to Faculty (e.g., department)
+                        isActive = true
+                    };
+
+                    _context.Faculties.Add(faculty);
+                    await _context.SaveChangesAsync();
+
+                    login.ReferenceId = faculty.Id; // Save the profile reference in Login
+                }
+                else if (registrationDto.UserType == "Alumni")
+                {
+                    var alumni = new Alumni
+                    {
+                        Name = registrationDto.FullName,
+                        Email = registrationDto.Email,
+                        CurrentPosition = registrationDto.Position,
+                        StudentId = registrationDto.ProfileId,
+                        YearGraduated = registrationDto.YearGraduated,
+                        isActive = true
+                    };
+
+                    _context.Alumni.Add(alumni);
+                    await _context.SaveChangesAsync();
+
+                    login.ReferenceId = alumni.Id; // Save the profile reference in Login
+                }
+                else if (registrationDto.UserType == "Organization")
+                {
+                    var org = new Organization
+                    {
+                        OrganizationEmail = registrationDto.Email,
+                        OrganizationId = registrationDto.ProfileId,
+                        OrganizationName = registrationDto.FullName,
+                        isActive = true
+                    };
+
+                    _context.Organizations.Add(org);
+                    await _context.SaveChangesAsync();
+
+                    login.ReferenceId = org.Id; // Save the profile reference in Login
+                }
+                else if (registrationDto.UserType == "Admin")
+                {
+                    var admin = new Admin
+                    {
+                        InstitutionalEmail = registrationDto.Email,
+                        Name = registrationDto.FullName,
+                        Position = registrationDto.Position,
+                        isActive = true
+                    };
+
+                    _context.Admins.Add(admin);
+                    await _context.SaveChangesAsync();
+
+                    login.ReferenceId = admin.Id; // Save the profile reference in Login
+                }
+
                 await _context.SaveChangesAsync();
-
-                login.ReferenceId = faculty.Id; // Save the profile reference in Login
-            }
-            else if (registrationDto.UserType == "Alumni")
-            {
-                var alumni = new Alumni
-                {
-                    Name = registrationDto.FullName,
-                    Email = registrationDto.Email,
-                    CurrentPosition = registrationDto.Position,
-                    StudentId = registrationDto.ProfileId,
-                    YearGraduated = registrationDto.YearGraduated,
-                    isActive = true
-                };
+                await transaction.CommitAsync();
                 
-                _context.Alumni.Add(alumni);
-                await _context.SaveChangesAsync();
-
-                login.ReferenceId = alumni.Id; // Save the profile reference in Login
+                return new OperationResult(true, "Registration successful.");
             }
-            else if (registrationDto.UserType == "Organization")
+            catch (Exception ex) 
             {
-                var org = new Organization
-                {
-                    OrganizationEmail = registrationDto.Email,
-                    OrganizationId = registrationDto.ProfileId,
-                    OrganizationName = registrationDto.FullName,
-                    isActive = true
-                };
-
-                _context.Organizations.Add(org);
-                await _context.SaveChangesAsync();
-
-                login.ReferenceId = org.Id; // Save the profile reference in Login
-            }
-            else if (registrationDto.UserType == "Admin")
-            {
-                var admin = new Admin
-                {
-                    InstitutionalEmail = registrationDto.Email,
-                    Name = registrationDto.FullName,
-                    Position = registrationDto.Position,
-                    isActive = true
-                };
-
-                _context.Admins.Add(admin);
-                await _context.SaveChangesAsync();
-
-                login.ReferenceId = admin.Id; // Save the profile reference in Login
+                await transaction.RollbackAsync();
+                return new OperationResult(true, "There was an error in registration.");
             }
 
-                await _context.SaveChangesAsync();
-
-            return new OperationResult(true, "Registration successful.");
+            
         }
 
         public async Task<UserInfoDto> AuthenticationAsync(string email, string password)
