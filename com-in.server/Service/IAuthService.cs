@@ -1,5 +1,6 @@
 ﻿using com_in.server.DTO;
 using com_in.server.Hasher;
+using com_in.server.Helper;
 using com_in.server.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,7 @@ namespace com_in.server.Service
     public interface IAuthService
     {
         Task<OperationResult> RegisterAsync(RegistrationDto registrationDto);
+        Task<OperationResult> ConfirmEmailAsync(int userId, string token);
         Task<UserInfoDto> AuthenticationAsync(string email, string password);
     }
 
@@ -18,11 +20,15 @@ namespace com_in.server.Service
     {
         private readonly ForumContext _context;
         private readonly IPasswordHasher _passwordHasher;
+        private readonly IEmailService _emailService;
+        private readonly IConfiguration _configuration;
 
-        public AuthService(ForumContext context, IPasswordHasher passwordHasher)
+        public AuthService(ForumContext context, IPasswordHasher passwordHasher, IEmailService emailService, IConfiguration configuration)
         {
             _context = context;
             _passwordHasher = passwordHasher;
+            _emailService = emailService;
+            _configuration = configuration;
         }
 
         public async Task<OperationResult> RegisterAsync(RegistrationDto registrationDto)
@@ -40,12 +46,29 @@ namespace com_in.server.Service
                 }
 
                 // Step 1: Create the Login record
+
+                if (registrationDto.Password != null)
+                {
+                }
+
+
                 var login = new Login
                 {
                     Email = registrationDto.Email,
-                    Password = _passwordHasher.HashPassword(registrationDto.Password), // Hash password
+                    Password = registrationDto.Password,  //_passwordHasher.HashPassword(registrationDto.Password), // Hash password
                     UserType = registrationDto.UserType,
+                    isActive = true
+
                 };
+
+                if (registrationDto.isAddedBySupOrAdmin)
+                    login.isEmailConfirmed = true;
+                else
+                {
+                    login.isEmailConfirmed = false;
+                    login.EmailConfirmationToken = TokenGenerator.GenerateEmailConfimationToken();
+                    login.EmailConfirmationTokenExpiry = DateTime.UtcNow.AddDays(1);
+                }
 
                 _context.Logins.Add(login);
                 await _context.SaveChangesAsync();
@@ -55,10 +78,10 @@ namespace com_in.server.Service
                 {
                     var student = new Student
                     {
-                        StudentId = registrationDto.ProfileId,
+                        StudentId = int.Parse(registrationDto.ProfileId),
                         Name = registrationDto.FullName,
                         Email = registrationDto.Email,
-                        courseId = registrationDto.courseId, // Specific to Student (e.g., course name)
+                        course = registrationDto.course, // Specific to Student (e.g., course name)
                         isActive = true
                     };
 
@@ -72,11 +95,11 @@ namespace com_in.server.Service
                 {
                     var faculty = new Faculty
                     {
-                        FacultyId = registrationDto.ProfileId,
+                        FacultyId = int.Parse(registrationDto.ProfileId),
                         Position = registrationDto.Position,
                         Name = registrationDto.FullName,
                         InstitutionalEmail = registrationDto.Email,
-                        DepartmentId = registrationDto.departmentId, // Specific to Faculty (e.g., department)
+                        Department = registrationDto.department, // Specific to Faculty (e.g., department)
                         isActive = true
                     };
 
@@ -92,7 +115,7 @@ namespace com_in.server.Service
                         Name = registrationDto.FullName,
                         Email = registrationDto.Email,
                         CurrentPosition = registrationDto.Position,
-                        StudentId = registrationDto.ProfileId,
+                        StudentId = int.Parse(registrationDto.ProfileId),
                         YearGraduated = registrationDto.YearGraduated,
                         isActive = true
                     };
@@ -117,7 +140,7 @@ namespace com_in.server.Service
 
                     login.ReferenceId = org.Id; // Save the profile reference in Login
                 }
-                else if (registrationDto.UserType == "Admin")
+                else if (registrationDto.UserType == "SuperAdmin")
                 {
                     var admin = new Admin
                     {
@@ -135,72 +158,141 @@ namespace com_in.server.Service
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
-                
+
+                if (!registrationDto.isAddedBySupOrAdmin)
+                {
+                    var confirmationLink = $"{_configuration["AppBaseUrl"]}api/Auth/confirm-email?userId={login.Id}&token={Uri.EscapeDataString(login.EmailConfirmationToken)}";
+
+                    var emailSubject = "Confirm your email";
+                    var emailBody = $@"
+                            <h1> Welcome to ComIn App</h1>
+                            <p>Please confirm your email by clicking the link below: </p>
+                            <a href='{confirmationLink}'>Confirm Email</a>
+                            <p>If you didn't request this, please ignore this email.";
+                    await _emailService.SendEmailAsync(login.Email, emailSubject, emailBody);
+                }
+
                 return new OperationResult(true, "Registration successful.");
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                return new OperationResult(true, "There was an error in registration.");
+                return new OperationResult(false, "There was an error in registration.");
             }
 
-            
+
+        }
+
+        public async Task<OperationResult> ConfirmEmailAsync(int userId, string token)
+        {
+            var user = await _context.Logins.FindAsync(userId);
+            if (user == null)
+            {
+                return new OperationResult(false, "User not found");
+            }
+
+            if (user.isEmailConfirmed)
+            {
+                return new OperationResult(false, "Email already confirmed");
+            }
+            if (!TokenGenerator.ValidateTokenExpiry(user.EmailConfirmationTokenExpiry))
+            {
+                return new OperationResult(false, "Token expired");
+            }
+            if (user.EmailConfirmationToken != token)
+            {
+                return new OperationResult(false, "Invalid Token.");
+            }
+
+            user.isEmailConfirmed = true;
+            user.EmailConfirmationToken = null;
+            user.EmailConfirmationTokenExpiry = null;
+
+            await _context.SaveChangesAsync();
+
+
+            return new OperationResult(true, "Email confirmed");
         }
 
         public async Task<UserInfoDto> AuthenticationAsync(string email, string password)
         {
             var user = await _context.Logins.FirstOrDefaultAsync(c => c.Email == email);
-            
-            if(user == null)
+
+            if (user == null)
             {
                 return null;
             }
 
-            if (!_passwordHasher.VerifyPassword(user.Password, password))
+            //if (!_passwordHasher.VerifyPassword(user.Password, password))
+            //{
+            //    return null;
+            //}
+
+            if (user.Password != password)
             {
                 return null;
             }
 
-            object profile;
-
-            if(user.UserType == "Student")
+            if (!user.isEmailConfirmed)
             {
-                profile = await _context.Students.FirstOrDefaultAsync(c => c.Id == user.Id);
+                return null;
+            }
+
+
+
+            if (user.UserType == "Student")
+            {
+                Student profile = await _context.Students.FirstOrDefaultAsync(c => c.Id == user.ReferenceId);
                 return new UserInfoDto
                 {
-                    student = (Student)profile
+                    role = "student",
+                    Id = user.Id,
+                    Name = profile.Name,
+                    Email = profile.Email,
                 };
             }
-            else if(user.UserType == "Admin")
+            else if (user.UserType == "SuperAdmin")
             {
-                profile = await _context.Admins.FirstOrDefaultAsync(c => c.Id == user.Id);
+                Admin profile = await _context.Admins.FirstOrDefaultAsync(c => c.Id == user.ReferenceId);
                 return new UserInfoDto
                 {
-                    admin = (Admin)profile
+                    role = "superadmin",
+                    Id = user.Id,
+                    Name = profile.Name,
+                    Email = profile.InstitutionalEmail,
                 };
             }
             else if (user.UserType == "Faculty")
             {
-                profile = await _context.Faculties.FirstOrDefaultAsync(c => c.Id == user.Id);
+                Faculty profile = await _context.Faculties.FirstOrDefaultAsync(c => c.Id == user.ReferenceId);
                 return new UserInfoDto
                 {
-                    faculty = (Faculty)profile
+                    role = "faculty",
+                    Id = user.Id,
+                    Name = profile.Name,
+                    Email = profile.InstitutionalEmail,
                 };
             }
             else if (user.UserType == "Alumni")
             {
-                profile = await _context.Alumni.FirstOrDefaultAsync(c => c.Id == user.Id);
+                Alumni profile = await _context.Alumni.FirstOrDefaultAsync(c => c.Id == user.ReferenceId);
                 return new UserInfoDto
                 {
-                    alumni = (Alumni)profile
+                    role = "alumni",
+                    Id = user.Id,
+                    Name = profile.Name,
+                    Email = profile.Email,
                 };
             }
             else if (user.UserType == "Organization")
             {
-                profile = await _context.Organizations.FirstOrDefaultAsync(c => c.Id == user.Id);
+                Organization profile = await _context.Organizations.FirstOrDefaultAsync(c => c.Id == user.ReferenceId);
                 return new UserInfoDto
                 {
-                    organization = (Organization)profile
+                    role = "organization",
+                    Id = user.Id,
+                    Name = profile.OrganizationName,
+                    Email = profile.OrganizationEmail,
                 };
             }
 

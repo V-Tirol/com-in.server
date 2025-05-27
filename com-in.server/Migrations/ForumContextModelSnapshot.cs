@@ -71,9 +71,8 @@ namespace com_in.server.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("StudentId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
 
                     b.Property<string>("YearGraduated")
                         .IsRequired()
@@ -89,7 +88,29 @@ namespace com_in.server.Migrations
                     b.ToTable("Alumni");
                 });
 
-            modelBuilder.Entity("com_in.server.Models.Article", b =>
+            modelBuilder.Entity("com_in.server.Models.AnnouncementCategories", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
+
+                    b.Property<bool>("isActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("id");
+
+                    b.ToTable("AnnouncementCategories");
+                });
+
+            modelBuilder.Entity("com_in.server.Models.Announcements", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -97,34 +118,35 @@ namespace com_in.server.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Author")
+                    b.Property<string>("Category")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("CategoryId")
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("PublishDateAndTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PublishedById")
                         .HasColumnType("int");
 
-                    b.Property<DateOnly>("Date")
-                        .HasColumnType("date");
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("filter")
+                    b.Property<string>("imageURL")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CategoryId");
-
-                    b.ToTable("Articles");
+                    b.ToTable("Announcements");
                 });
 
             modelBuilder.Entity("com_in.server.Models.Category", b =>
@@ -201,13 +223,12 @@ namespace com_in.server.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("DepartmentId")
+                    b.Property<string>("Department")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("FacultyId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("FacultyId")
+                        .HasColumnType("int");
 
                     b.Property<string>("InstitutionalEmail")
                         .IsRequired()
@@ -243,6 +264,12 @@ namespace com_in.server.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("EmailConfirmationToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("EmailConfirmationTokenExpiry")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateOnly>("LastLoginDate")
                         .HasColumnType("date");
 
@@ -264,6 +291,9 @@ namespace com_in.server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
+
+                    b.Property<bool>("isEmailConfirmed")
+                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 
@@ -301,9 +331,7 @@ namespace com_in.server.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("isActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
+                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 
@@ -334,6 +362,61 @@ namespace com_in.server.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("MediaType");
+                });
+
+            modelBuilder.Entity("com_in.server.Models.MultiMedia", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Author")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("departmentName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("departmentType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<TimeSpan?>("duration")
+                        .HasColumnType("time");
+
+                    b.Property<string>("fileURL")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("isDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("isSuperAdminApprove")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("mediaType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("uploaderId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("MultiMedia");
                 });
 
             modelBuilder.Entity("com_in.server.Models.Organization", b =>
@@ -374,6 +457,9 @@ namespace com_in.server.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("CourseId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -382,12 +468,12 @@ namespace com_in.server.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("StudentId")
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("course")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("courseId")
-                        .HasColumnType("int");
 
                     b.Property<bool>("isActive")
                         .ValueGeneratedOnAdd()
@@ -396,26 +482,74 @@ namespace com_in.server.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("courseId");
+                    b.HasIndex("CourseId");
 
                     b.ToTable("Students");
                 });
 
-            modelBuilder.Entity("com_in.server.Models.Article", b =>
+            modelBuilder.Entity("com_in.server.Models.TextMedia", b =>
                 {
-                    b.HasOne("com_in.server.Models.Category", "Category")
-                        .WithMany("Articles")
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
-                    b.Navigation("Category");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Author")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("MediaTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("departmentName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("departmentType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("fileURL")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("isDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("isSuperAdminApprove")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("mediaType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("uploaderId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MediaTypeId");
+
+                    b.ToTable("TextMedia");
                 });
 
             modelBuilder.Entity("com_in.server.Models.Media", b =>
                 {
                     b.HasOne("com_in.server.Models.Category", "Category")
-                        .WithMany("Media")
+                        .WithMany()
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -433,20 +567,16 @@ namespace com_in.server.Migrations
 
             modelBuilder.Entity("com_in.server.Models.Student", b =>
                 {
-                    b.HasOne("com_in.server.Models.Course", "course")
+                    b.HasOne("com_in.server.Models.Course", null)
                         .WithMany("student")
-                        .HasForeignKey("courseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("course");
+                        .HasForeignKey("CourseId");
                 });
 
-            modelBuilder.Entity("com_in.server.Models.Category", b =>
+            modelBuilder.Entity("com_in.server.Models.TextMedia", b =>
                 {
-                    b.Navigation("Articles");
-
-                    b.Navigation("Media");
+                    b.HasOne("com_in.server.Models.MediaType", null)
+                        .WithMany("textMedias")
+                        .HasForeignKey("MediaTypeId");
                 });
 
             modelBuilder.Entity("com_in.server.Models.Course", b =>
@@ -457,6 +587,8 @@ namespace com_in.server.Migrations
             modelBuilder.Entity("com_in.server.Models.MediaType", b =>
                 {
                     b.Navigation("media");
+
+                    b.Navigation("textMedias");
                 });
 #pragma warning restore 612, 618
         }

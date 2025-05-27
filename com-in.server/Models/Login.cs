@@ -10,5 +10,10 @@
         public DateOnly LastLoginDate { get; set; }
         public TimeOnly LastLoginTime { get; set; }
         public bool isActive { get; set; }
+
+        public bool isEmailConfirmed {  get; set; }
+        public string? EmailConfirmationToken { get; set; }
+        public DateTime? EmailConfirmationTokenExpiry { get; set; }
+
     }
 }

@@ -12,12 +12,12 @@ namespace com_in.server.Models
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Category>().HasKey(c => c.Id);
-            modelBuilder.Entity<Media>().HasKey(c => c.Id);
-            modelBuilder.Entity<Article>().HasKey(c => c.Id);
             modelBuilder.Entity<MediaType>().HasKey(c => c.Id);
 
             modelBuilder.Entity<Course>().HasKey(c => c.Id);
             modelBuilder.Entity<Department>().HasKey(c => c.Id);
+            modelBuilder.Entity<AnnouncementCategories>().HasKey(c => c.id);
+            modelBuilder.Entity<Announcements>().HasKey(c => c.Id);
 
             modelBuilder.Entity<Login>().HasKey(c => c.Id);
             modelBuilder.Entity<Student>().HasKey(c => c.Id);
@@ -27,16 +27,8 @@ namespace com_in.server.Models
             modelBuilder.Entity<Admin>().HasKey(c => c.Id);
 
 
-            modelBuilder.Entity<Student>()
-                .HasOne(c => c.course)
-                .WithMany(c => c.student)
-                .HasForeignKey(c => c.courseId);
 
             
-            modelBuilder.Entity<Media>()
-                .HasOne(c => c.Category)
-                .WithMany(m => m.Media)
-                .HasForeignKey(c => c.CategoryId);
 
             modelBuilder.Entity<Media>()
                 .HasOne(t => t.Type)
@@ -44,14 +36,9 @@ namespace com_in.server.Models
                 .HasForeignKey(t => t.TypeId);
 
 
-            modelBuilder.Entity<Article>()
-                .Property(a => a.IsActive)
-                .HasDefaultValue(true);
+
             modelBuilder.Entity<Category>()
                 .Property(c => c.isActive)
-                .HasDefaultValue(true);
-            modelBuilder.Entity<Media>()
-                .Property(m => m.isActive)
                 .HasDefaultValue(true);
             modelBuilder.Entity<MediaType>()
             .Property(t => t.isActive)
@@ -80,18 +67,25 @@ namespace com_in.server.Models
             modelBuilder.Entity<Course>()
                 .Property(t => t.isDeleted)
                 .HasDefaultValue(false);
-
             modelBuilder.Entity<Department>()
                 .Property(t => t.IsDeleted)
                 .HasDefaultValue(false);
+            modelBuilder.Entity<TextMedia>()
+                .Property (t => t.isDeleted)
+                .HasDefaultValue (false);
+            modelBuilder.Entity<AnnouncementCategories>()
+                .Property(t => t.isActive)
+                .HasDefaultValue(true);
 
 
         }
 
+        public DbSet<TextMedia> TextMedia { get; set; }
+        public DbSet<MultiMedia> MultiMedia { get; set; }
         public DbSet<Category> Categories { get; set; }
-        public DbSet<Article> Articles { get; set; }
-        public DbSet<Media> Media { get; set; }
         public DbSet<MediaType> MediaType { get; set; }
+        public DbSet<AnnouncementCategories> AnnouncementCategories { get; set; }
+        public DbSet<Announcements> Announcements { get; set; }
 
         public DbSet<Course> Courses { get; set; }
         public DbSet<Department> Department { get; set; }

@@ -53,5 +53,23 @@ namespace com_in.server.Controllers
             }
             return Ok(result.Message);
         }
+
+        [HttpGet("confirm-email")]
+        public async Task<ActionResult> ConfirmEmail([FromQuery] int userId, [FromQuery] string token)
+        {
+            if(string.IsNullOrEmpty(token))
+            {
+                return BadRequest("Invalid confirmation link");
+            }
+
+            var result = await _authService.ConfirmEmailAsync(userId, token);
+
+            if(!result.IsSuccess)
+            {
+                return BadRequest(result.Message);
+            }
+
+            return Ok(result.Message);
+        }
     }
 }

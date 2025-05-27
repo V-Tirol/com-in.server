@@ -7,9 +7,6 @@ namespace com_in.server.Models
         public int Id { get; set; }
         public string Name {  get; set; }
         public bool isActive { get; set; }
-        [JsonIgnore]
-        public virtual List<Article> Articles { get; set; }
-        [JsonIgnore]
-        public virtual List<Media> Media { get; set; }
+
     }
 }

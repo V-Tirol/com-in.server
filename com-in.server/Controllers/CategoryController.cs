@@ -27,6 +27,18 @@ namespace com_in.server.Controllers
             return Ok(categories);
         }
 
+        [HttpGet()]
+        [Route("AnnouncementCategory")]
+        public async Task<ActionResult<IEnumerable<AnnouncementCategories>>> GetAnnouncemntCategories()
+        {
+            var announcementCategories = await _context.AnnouncementCategories
+                .Where(c => c.isActive)
+                .ToListAsync();
+
+            return Ok(announcementCategories);
+        }
+        
+
 
     }
 }

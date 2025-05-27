@@ -1,7 +1,9 @@
 using com_in.server.Hasher;
 using com_in.server.Models;
 using com_in.server.Service;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.OpenApi.Writers;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,57 +15,55 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ReactLocalhost", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+    });
+});
+
 builder.Services.AddDbContext<ForumContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+builder.Services.AddTransient<IEmailService, EmailService>();
+//builder.Services.AddScoped(IFileUploadService, FileUploadService());
 builder.Services.AddAutoMapper(typeof(Program));
 
-//builder.Services.AddCors(options =>
-//{
-//    options.AddPolicy("AllowReactApp",
-//        policy =>
-//        {
-//            policy.WithOrigins("http://localhost:5173/") // Replace with your frontend URL
-//                  .AllowAnyHeader()
-//                  .AllowAnyMethod();
-//        });
-//});
 
-builder.Services.AddCors(options =>
-{
-    options.AddDefaultPolicy(policy =>
-    {
-        policy.AllowAnyOrigin()  // <-- temporarily allow any origin
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
-});
+
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+
+
+app.UseCors("ReactLocalhost");
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(builder.Environment.ContentRootPath, "uploads")),
+    RequestPath = "/uploads",
+    OnPrepareResponse = ctx =>
+    {
+        Console.WriteLine("Serving with CORS: " + ctx.File.Name);
+        ctx.Context.Response.Headers.Append("Access-Control-Allow-Origin", "http://localhost:5173");
+    }
+});
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-//using (var scope = app.Services.CreateScope())
-//{
-//    var db = scope.ServiceProvider.GetRequiredService<ForumContext>();
-//    //db.Database.EnsureCreated();
-//    await db.Database.MigrateAsync();
-//    await DbSeeder.SeedAsync(db);
-//}
-
-//app.UseCors("AllowReactApp");
-app.UseCors();
-app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
+app.UseHttpsRedirection();
 app.MapControllers();
+
 
 app.Run();
