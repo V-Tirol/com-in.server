@@ -9,15 +9,15 @@ namespace com_in.server.Mapper
         public AutoMapperProfile()
         {
             CreateMap<Category, CategoryDto>();
-            CreateMap<Article, ArticleDto>()
-                .ForMember(d => d.CategoryName,
-                            opt => opt.MapFrom(src => src.Category.CategoryName));
-            CreateMap<Media, MediaDto>()
-                .ForMember(dest => dest.Category,
-                            opt => opt.MapFrom(src => src.Category.CategoryName))
-                .ForMember(dest => dest.Type,
-                            opt => opt.MapFrom(src => src.Type.Name));
+           
+            //CreateMap<Student, StudentDto>()
+            //.ForMember(dest => dest.Course,
+            //               opt => opt.MapFrom(src => src.course.Name));
                 
+
+
+
+
         }
         
     }

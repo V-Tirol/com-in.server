@@ -1,0 +1,19 @@
+Instructions
+
+SERVER
+1. Open com-in.server
+2. click com-in.server.sln to open solution
+3. click 'appsettings.json', ilisdi ang 'defaultConnection'
+	a. "DefaultConnection": "Server=[server-name];Database=com-in;Trusted_Connection=True;TrustServerCertificate=True;"
+	b. ilisdi nang [server-name] sa server sa imong database, if nagbutang kag user ug password sa db, i google nalang unsaon pag ilis sa conString haha
+4. sa Top menu, adto sa Tools > NuGet Package Manager > Package Manager Console
+5. i run ang command, Add-Migration Initial
+6. i run and command, Update-Database
+7. adto sa imong database, if naa kay SSMS, much better.. i run nang script naa sa textfile, kay wajud ko kakuha unsaon pag seed sa db haha
+8. then run the code, Ctrl + F5, mo open nag browser sa swagger UI, i check ang URL, ilisdi ang port if needed sa front-end
+
+
+FRONT-END
+1. i open sa vscode ang folder
+2. i check ang port if same ba sa katong swagger UI nigawas "const response = await axios.get('https://localhost:7272/api/Articles');" ilisdi if needed
+3. run the code

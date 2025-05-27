@@ -10,6 +10,8 @@ namespace com_in.server.DTO
         public string Views { get; set; }
         public bool isActive { get; set; }
         public string Type { get; set; }
-        public string Category { get; set; }
+
+        public string filter { get; set; }
+        public string category { get; set; }
     }
 }

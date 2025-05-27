@@ -9,5 +9,6 @@ namespace com_in.server.Models
         public bool isActive {  get; set; }
         [JsonIgnore]
         public List<Media> media { get; set; }
+        public List<TextMedia> textMedias { get; set; }
     }
 }
